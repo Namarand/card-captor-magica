@@ -2,19 +2,27 @@ from optparse import OptionParser
 
 import cv2
 import os
-from card_cut import detect_card
+from tempfile import mkdtemp
 
-def launch_program(video_stream):
+from card_cut import detect_card, cut_top_half
+
+def launch_program(video_stream, folder):
     cap = cv2.VideoCapture(video_stream)
+    x = 0
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-        (card_contour, image_contour) = detect_card(frame)
-        cv2.drawContours(frame, [card_contour] + [image_contour], -1, (0, 255, 0), 2)
+        card_contour = detect_card(frame)
+        cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
+        wraped = cut_top_half(frame, card_contour)
+        filename = folder + '/image' +  str(int(x)) + ".jpg"
+        cv2.imwrite(filename, wraped)
+        x += 1
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
+
     cap.release()
     cv2.destroyAllWindows()
 
@@ -22,8 +30,13 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-f", "--file", dest="filename",
                       help="analyse FILE video file", metavar="FILE")
+    parser.add_option("--save-title", dest="save_folder",
+                      help="save temporary file in a FOLDER folder", metavar="FOLDER")
     (options, args) = parser.parse_args()
     input_type = 0
+    save_folder = options.save_folder
     if options.filename is not None:
         input_type = options.filename
-    launch_program(input_type)
+    if save_folder is None:
+        save_folder = mkdtemp()
+    launch_program(input_type, save_folder)

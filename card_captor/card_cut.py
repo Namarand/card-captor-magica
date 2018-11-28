@@ -8,17 +8,14 @@ def detect_card(frame):
     _, contours, _ = cv2.findContours(thresh,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     sorted_contours = sorted([ (cv2.contourArea(i), i) for i in contours ], key=lambda a:a[0], reverse=True)
     _, card_contour = sorted_contours[1]
-    _, image_contour = sorted_contours[3]
     rect = cv2.minAreaRect(card_contour)
     points = cv2.boxPoints(rect)
     points = np.int0(points)
-    rect = cv2.minAreaRect(image_contour)
-    points = cv2.boxPoints(rect)
-    points = np.int0(points)
-    return (card_contour, image_contour)
+    return card_contour
 
-def capture_title(card_contour, image_contour):
-    (tl, tr, br, bl) = create_rectangle(card_contour, image_contour)
+def cut_top_half(frame, card_contour):
+    rect = create_rectangle(card_contour)
+    (tl, tr, br, bl) = rect
 
     widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
     widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
@@ -35,34 +32,29 @@ def capture_title(card_contour, image_contour):
         [0, maxHeight - 1]], dtype = "float32")
 
     M = cv2.getPerspectiveTransform(rect, dst)
-    warped = cv2.warpPerspective(frame, M, (maxWidth, maxHeight))
-    cv2.imshow('frame', warped)
-    filename = "{}.png".format(os.getpid())
-    cv2.imwrite(filename, warped)
+    wraped = cv2.warpPerspective(frame, M, (maxWidth, maxHeight))
+    return wraped
 
-def create_rectangle(card_contour, image_contour):
+def create_rectangle(card_contour):
     # create a min area rectangle from our contour
-    card_rect = cv2.minAreaRect(card_contour)
-    image_rect = cv2.minAreaRect(image_contour)
-
-    card_box = cv2.boxPoints(card_rect)
-    cardbox = np.int0(card_box)
-    image_box = cv2.boxPoints(image_rect)
-    image_box = np.int0(image_box)
+    rect = cv2.minAreaRect(card_contour)
+    box = cv2.boxPoints(rect)
+    box = np.int0(box)
 
     # create empty initialized rectangle
     rect = np.zeros((4, 2), dtype = "float32")
 
-    # get top points
-    s = card_box.sum(axis = 1)
-    rect[0] = card_box[np.argmin(s)]
-    diff = np.diff(card_box, axis = 1)
-    rect[1] = card_box[np.argmin(diff)]
+    # get top left and bottom right points
+    s = box.sum(axis = 1)
+    rect[0] = box[np.argmin(s)]
+    rect[2] = box[np.argmax(s)]
 
-    # get bottom points
-    s = image_box.sum(axis = 1)
-    rect[3] = image_box[np.argmin(s)]
-    diff = np.diff(image_box, axis = 1)
-    rect[2] = image_box[np.argmin(diff)]
+    # get top right and bottom left points
+    diff = np.diff(box, axis = 1)
+    rect[1] = box[np.argmin(diff)]
+    rect[3] = box[np.argmax(diff)]
+
+    rect[3][1] /= 2
+    rect[2][1] /= 2
 
     return rect
