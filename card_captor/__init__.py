@@ -5,6 +5,7 @@ import os
 from tempfile import mkdtemp
 
 from card_cut import detect_card, cut_top_half
+from card_title import get_card_name
 
 def launch_program(video_stream, folder):
     cap = cv2.VideoCapture(video_stream)
@@ -16,15 +17,21 @@ def launch_program(video_stream, folder):
         card_contour = detect_card(frame)
         cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
         wraped = cut_top_half(frame, card_contour)
-        filename = folder + '/image' +  str(int(x)) + ".jpg"
-        cv2.imwrite(filename, wraped)
-        x += 1
+        filename = save_image(wraped, folder)
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
+
+def save_image(frame, folder, name="image"):
+    if not hasattr(save_image, "x"):
+         save_image.x = 0
+    filename = folder + '/' + name +  str(save_image.x) + ".jpg"
+    cv2.imwrite(filename, frame)
+    save_image.x += 1
+    return filename
 
 if __name__ == "__main__":
     parser = OptionParser()
