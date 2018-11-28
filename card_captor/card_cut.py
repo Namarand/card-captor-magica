@@ -54,7 +54,7 @@ def create_rectangle(card_contour):
     rect[1] = box[np.argmin(diff)]
     rect[3] = box[np.argmax(diff)]
 
-    rect[3][1] /= 2
-    rect[2][1] /= 2
+    rect[3][1] = (rect[0][1] + rect[3][1]) / 2
+    rect[2][1] = (rect[1][1] + rect[2][1]) / 2
 
     return rect
