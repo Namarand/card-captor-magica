@@ -2,6 +2,7 @@ from optparse import OptionParser
 
 import cv2
 import os
+from card_cut import detect_card
 
 def launch_program(video_stream):
     cap = cv2.VideoCapture(video_stream)
@@ -9,7 +10,8 @@ def launch_program(video_stream):
         ret, frame = cap.read()
         if not ret:
             break
-        #detect_card(frame)
+        (card_contour, image_contour) = detect_card(frame)
+        cv2.drawContours(frame, [card_contour] + [image_contour], -1, (0, 255, 0), 2)
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
