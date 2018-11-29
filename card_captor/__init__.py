@@ -15,11 +15,12 @@ def launch_program(video_stream, folder):
         if not ret:
             break
         card_contour = detect_card(frame)
-        cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
-        wraped = cut_top_half(frame, card_contour)
-        filename = save_image(wraped, folder)
+        if card_contour is not None:
+            cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
+            wraped = cut_top_half(frame, card_contour)
+            filename = save_image(wraped, folder)
+            print(identify_card(filename, database))
         cv2.imshow('frame', frame)
-        print(identify_card(filename, database))
         if cv2.waitKey(1) == ord('q'):
             break
 
