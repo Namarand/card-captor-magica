@@ -5,11 +5,11 @@ import os
 from tempfile import mkdtemp
 
 from card_cut import detect_card, cut_top_half
-from card_title import get_card_name
+from card_title import identify_card, create_card_database
 
 def launch_program(video_stream, folder):
     cap = cv2.VideoCapture(video_stream)
-    x = 0
+    database = create_card_database(['GRN'], ['French'])
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -19,6 +19,7 @@ def launch_program(video_stream, folder):
         wraped = cut_top_half(frame, card_contour)
         filename = save_image(wraped, folder)
         cv2.imshow('frame', frame)
+        print(identify_card(filename, database))
         if cv2.waitKey(1) == ord('q'):
             break
 
