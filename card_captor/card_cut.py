@@ -16,7 +16,7 @@ def detect_card(frame):
     return card_contour
 
 def cut_top_half(frame, card_contour):
-    rect = create_rectangle(card_contour)
+    rect = _create_rectangle(card_contour)
     (tl, tr, br, bl) = rect
 
     widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
@@ -37,7 +37,7 @@ def cut_top_half(frame, card_contour):
     wraped = cv2.warpPerspective(frame, M, (maxWidth, maxHeight))
     return wraped
 
-def create_rectangle(card_contour):
+def _create_rectangle(card_contour):
     # create a min area rectangle from our contour
     rect = cv2.minAreaRect(card_contour)
     box = cv2.boxPoints(rect)
@@ -56,7 +56,31 @@ def create_rectangle(card_contour):
     rect[1] = box[np.argmin(diff)]
     rect[3] = box[np.argmax(diff)]
 
-    rect[3][1] = (rect[0][1] + rect[3][1]) / 2
-    rect[2][1] = (rect[1][1] + rect[2][1]) / 2
+    return _center_rectangle(rect)
+
+def _center_rectangle(rect):
+    # remove the bottom part
+    rect[3][0] = (rect[0][0] * 8 + rect[3][0]) / 9
+    rect[3][1] = (rect[0][1] * 8 + rect[3][1]) / 9
+    rect[2][0] = (rect[1][0] * 8 + rect[2][0]) / 9
+    rect[2][1] = (rect[1][1] * 8 + rect[2][1]) / 9
+
+    # remove the top part
+    rect[0][0] = (rect[0][0] * 2 + rect[3][0]) / 3
+    rect[0][1] = (rect[0][1] * 2 + rect[3][1]) / 3
+    rect[1][0] = (rect[1][0] * 2 + rect[2][0]) / 3
+    rect[1][1] = (rect[1][1] * 2 + rect[2][1]) / 3
+
+    # remove the left part
+    rect[0][0] = (rect[0][0] * 13 + rect[1][0]) / 14
+    rect[0][1] = (rect[0][1] * 13 + rect[1][1]) / 14
+    rect[3][0] = (rect[3][0] * 13 + rect[2][0]) / 14
+    rect[3][1] = (rect[3][1] * 13 + rect[2][1]) / 14
+
+    # remove the right part
+    rect[1][0] = (rect[0][0] * 2 + rect[1][0] * 8) / 10
+    rect[1][1] = (rect[0][1] * 2 + rect[1][1] * 8) / 10
+    rect[2][0] = (rect[3][0] * 2 + rect[2][0] * 8) / 10
+    rect[2][1] = (rect[3][1] * 2 + rect[2][1] * 8) / 10
 
     return rect
