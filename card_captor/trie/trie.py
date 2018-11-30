@@ -23,7 +23,7 @@ class TrieNode:
             if i == 0:
                 dist = len(acc) + 1
             else:
-                diff_cost = 0 if c.upper() == word[i - 1] else 1
+                diff_cost = 0 if c == word[i - 1] else 1
                 dist = min(prev_dists[i - 1] + diff_cost,
                            prev_dists[i] + 1,
                            new_dists[i - 1] + 1)
@@ -56,10 +56,10 @@ class Trie:
                 # Assuming a json format similar to http://mtgjson.com/
                 data = json.load(f)
                 for card in data.keys():
-                    self.root.add_word(card.upper())
+                    self.root.add_word(card)
             except:
                 for line in f:
-                    self.root.add_word(line.upper())
+                    self.root.add_word(line)
 
     def save_file(self, path):
         with open(path, "wb") as f:
@@ -79,7 +79,7 @@ class Trie:
                 return res
 
     def find_closest(self, word, max_iter=3):
-        word = word.upper()
+        word = word
         for i in range(max_iter + 1):
             res = self._exists_dist(word, i)
             if res:
