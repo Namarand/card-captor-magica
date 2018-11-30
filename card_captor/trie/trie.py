@@ -1,5 +1,12 @@
-import pickle
+from pathlib import Path
 import json
+import logging
+import mtgsdk
+import pickle
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class TrieNode:
     def __init__(self):
@@ -42,32 +49,38 @@ class TrieNode:
         return ""
 
 class Trie:
-    def __init__(self, dict_path=None, save_path=None):
+    def __init__(self, cache_path=Path(Path.home(),
+                                       ".cache/card_captor_magica/cards")):
         self.root = TrieNode()
-        assert(dict_path is None or save_path is None)
-        if dict_path:
-            self.read_dict(dict_path)
-        elif save_path:
-            self.load_file(save_path)
+        cache = Path(cache_path)
+        if cache.is_file():
+            logger.info("Loading card data from {}".format(cache))
+            self._load_file(cache)
+            logger.info("Cards loaded")
+        else:
+            logger.info("Downloading cards data...")
+            self._load_mtg()
+            logger.info("Saving to {}".format(cache))
+            cache.parents[0].mkdir(exist_ok=True, parents=True)
+            self._save_file(cache)
 
-    def read_dict(self, path):
-        with open(path, "r") as f:
-            try:
-                # Assuming a json format similar to http://mtgjson.com/
-                data = json.load(f)
-                for card in data.keys():
-                    self.root.add_word(card)
-            except:
-                for line in f:
-                    self.root.add_word(line)
+    def _load_mtg(self):
+        for card in mtgsdk.card.Card.where().iter():
+            self._add_card(card)
 
-    def save_file(self, path):
+    def _save_file(self, path):
         with open(path, "wb") as f:
             pickle.dump(self.root, f, pickle.HIGHEST_PROTOCOL)
 
-    def load_file(self, path):
+    def _load_file(self, path):
         with open(path, "rb") as f:
             self.root = pickle.load(f)
+
+    def _add_card(self, card):
+        self.root.add_word(card.name)
+        if card.foreign_names:
+            for foreign in card.foreign_names:
+                self.root.add_word(foreign["name"])
 
 
     def _exists_dist(self, word, maxdist):
@@ -78,10 +91,15 @@ class Trie:
             if res:
                 return res
 
-    def find_closest(self, word, max_iter=3):
+    def find_closest(self, word, max_iter=2):
         word = word
         for i in range(max_iter + 1):
             res = self._exists_dist(word, i)
             if res:
                 return res
         return ""
+
+
+if __name__ == "__main__":
+    t = Trie()
+    assert(t.find_closest("Frissaon rampat") == "Frisson rampant")
