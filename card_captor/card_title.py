@@ -11,7 +11,7 @@ def detect_characters(image_path):
 
 def identify_card(image_path, database):
     ocr_result = detect_characters(image_path)
-    closest = difflib.get_close_matches(ocr_result, database)
+    closest = database.find_closest(ocr_result)
     print(closest)
 
 def fetch_extension(extensions_id):
@@ -33,4 +33,4 @@ def get_cards_name(cards, languages):
             for foreign_card in card.foreign_names:
                 if foreign_card["language"] in languages:
                     results += [foreign_card["name"]]
-    return results                
+    return results
