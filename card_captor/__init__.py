@@ -7,10 +7,12 @@ from tempfile import mkdtemp
 from card_cut import detect_card, cut_top_half
 from card_title import identify_card, create_card_database
 from trie import Trie
+from output_handler import Output
 
 def launch_program(video_stream, folder, json_path):
     cap = cv2.VideoCapture(video_stream)
-    database = Trie(dict_path=json_path)
+    database = Trie()
+    output = Output()
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -20,11 +22,13 @@ def launch_program(video_stream, folder, json_path):
             cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
             wraped = cut_top_half(frame, card_contour)
             filename = save_image(wraped, folder)
-            identify_card(filename, database)
+            name = identify_card(filename, database)
+            if name != 'X':
+                output.add_card(name)
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
             break
-
+    output.print_list()
     cap.release()
     cv2.destroyAllWindows()
 
