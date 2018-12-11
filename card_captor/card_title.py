@@ -12,7 +12,7 @@ def detect_characters(image_path):
 def identify_card(image_path, database):
     ocr_result = detect_characters(image_path)
     closest = database.find_closest(ocr_result)
-    print(closest)
+    return closest
 
 def fetch_extension(extensions_id):
     return Card.where(set=extensions_id).all()
