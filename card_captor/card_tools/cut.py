@@ -4,12 +4,13 @@ import os
 
 def detect_card(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY)
-    _, contours, _ = cv2.findContours(thresh,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    if len(contours) < 2:
+    negate = cv2.bitwise_not(gray)
+    _, thresh = cv2.threshold(negate, 130, 255, cv2.THRESH_BINARY)
+    hierarchy = cv2.findContours(thresh,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours = _pruned_contours(hierarchy)
+    if len(contours) < 1:
         return None
-    sorted_contours = sorted([ (cv2.contourArea(i), i) for i in contours ], key=lambda a:a[0], reverse=True)
-    _, card_contour = sorted_contours[1]
+    card_contour = contours[0]
     rect = cv2.minAreaRect(card_contour)
     points = cv2.boxPoints(rect)
     points = np.int0(points)
@@ -84,3 +85,10 @@ def _center_rectangle(rect):
     rect[2][1] = (rect[3][1] * 2 + rect[2][1] * 8) / 10
 
     return rect
+
+def _pruned_contours(hierarchy):
+    contours = []
+    for index in range(0, len(hierarchy) - 1):
+        if hierarchy[0][index][3] != -1:
+            contours += [hierarchy[1][index]]
+    return contours
