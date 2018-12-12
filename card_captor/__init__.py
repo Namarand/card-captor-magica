@@ -16,8 +16,8 @@ def launch_program(video_stream, folder, json_path):
         ret, frame = cap.read()
         if not ret:
             break
-        card_contour = detect_card(frame)
-        if card_contour is not None:
+        card_contours = detect_card(frame)
+        for card_contour in card_contours:
             cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
             wraped = cut_top_half(frame, card_contour)
             filename = save_image(wraped, folder)

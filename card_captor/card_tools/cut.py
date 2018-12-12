@@ -8,13 +8,7 @@ def detect_card(frame):
     _, thresh = cv2.threshold(negate, 130, 255, cv2.THRESH_BINARY)
     hierarchy = cv2.findContours(thresh,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = _pruned_contours(hierarchy)
-    if len(contours) < 1:
-        return None
-    card_contour = contours[0]
-    rect = cv2.minAreaRect(card_contour)
-    points = cv2.boxPoints(rect)
-    points = np.int0(points)
-    return card_contour
+    return contours
 
 def cut_top_half(frame, card_contour):
     rect = _create_rectangle(card_contour)
