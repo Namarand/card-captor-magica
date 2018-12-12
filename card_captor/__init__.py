@@ -4,8 +4,7 @@ import cv2
 import os
 from tempfile import mkdtemp
 
-from card_cut import detect_card, cut_top_half
-from card_title import identify_card, create_card_database
+from card_tools import detect_card, cut_top_half, identify_card
 from trie import Trie
 from output_handler import Output
 
