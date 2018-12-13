@@ -2,11 +2,13 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout, QListWidget, QHBoxLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
+
 from mtgsdk import Set
 
 class Sets(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
+        self.code = {}
         self._create_layout()
 
     def _create_layout(self):
@@ -28,6 +30,7 @@ class Sets(QWidget):
         sets = Set.all()
         for s in sets:
             list_w.addItem(s.name)
+            self.code[s.name] = s.code
         self.unactivated = list_w
         return list_w
 
@@ -45,7 +48,9 @@ class Sets(QWidget):
         b3 = QPushButton('>>')
         b3.clicked.connect(self._clear_activated)
         list_w.addWidget(b3)
-        list_w.addWidget(QPushButton('Update database'))
+        b4 = QPushButton('Update Database')
+        b4.clicked.connect(self._update_database)
+        list_w.addWidget(b4)
         return list_w
 
     def _add_to_activated(self):
@@ -65,3 +70,10 @@ class Sets(QWidget):
         while self.activated.count() > 0:
             item = self.activated.takeItem(0)
             self.unactivated.addItem(item)
+
+    def _update_database(self):
+        sets = []
+        for index in range(0, self.activated.count()):
+            name = self.activated.item(index).text()
+            sets += [self.code[name]]
+        print(sets)
