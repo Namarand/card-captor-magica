@@ -14,7 +14,7 @@ class Sets(QWidget):
         self.layout.addWidget(self._create_activated_list())
         self.layout.addLayout(self._create_middle_interface())
         self.layout.addWidget(self._create_other_list())
-        #self.setLayout(self.layout)
+        self.setLayout(self.layout)
 
     def _create_activated_list(self):
         list_w = QListWidget(self)

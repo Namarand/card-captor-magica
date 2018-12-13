@@ -1,45 +1,17 @@
+import sys
 from optparse import OptionParser
-
-import cv2
-import os
 from tempfile import mkdtemp
 
-from card_tools import detect_card, cut_top_half, identify_card
-from trie import Trie
-from output_handler import Output
+from PyQt5.QtWidgets import QApplication
 
-def launch_program(video_stream, folder, json_path):
-    cap = cv2.VideoCapture(video_stream)
-    database = Trie()
-    output = Output()
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        card_contour = detect_card(frame)
-        if card_contour is not None:
-            cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
-            wraped = cut_top_half(frame, card_contour)
-            filename = save_image(wraped, folder)
-            name = identify_card(filename, database)
-            if name != 'X':
-                output.add_card(name)
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
-    output.print_list()
-    cap.release()
-    cv2.destroyAllWindows()
-
-def save_image(frame, folder, name="image"):
-    if not hasattr(save_image, "x"):
-         save_image.x = 0
-    filename = folder + '/' + name +  str(save_image.x) + ".jpg"
-    cv2.imwrite(filename, frame)
-    save_image.x += 1
-    return filename
+from loop import launch_program
+from gui import App
 
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
+'''
     parser = OptionParser()
     parser.add_option("-f", "--file", dest="filename",
                       help="analyse FILE video file", metavar="FILE")
@@ -55,3 +27,4 @@ if __name__ == "__main__":
     if save_folder is None:
         save_folder = mkdtemp()
     launch_program(input_type, save_folder, options.json_path)
+'''
