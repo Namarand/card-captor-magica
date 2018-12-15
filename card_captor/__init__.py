@@ -22,7 +22,7 @@ def launch_program(video_stream, folder, json_path):
             wraped = cut_top_half(frame, card_contour)
             filename = save_image(wraped, folder)
             name = identify_card(filename, database)
-            if name != 'X':
+            if name != 'X' and name is not name:
                 output.add_card(name)
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):

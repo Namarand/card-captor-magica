@@ -11,20 +11,20 @@ logger.setLevel(logging.INFO)
 class TrieNode:
     def __init__(self):
         self.nodes = dict()
-        self.exists = False
+        self.card = None
 
-    def add_word(self, word):
+    def add_word(self, word, card):
         if len(word) == 0:
-            self.exists = True
+            self.card = card
         else:
             c = word[0]
             if not c in self.nodes:
                 self.nodes[c] = TrieNode()
-            self.nodes[c].add_word(word[1:])
+            self.nodes[c].add_word(word[1:], card)
 
-    def exists_dist(self, word, c, prev_dists, maxdist, acc):
+    def card_dist(self, word, c, prev_dists, maxdist, acc):
         new_dists = []
-        exists_valid = False
+        card_valid = False
         new_word = acc + c
         for i in range(len(word) + 1):
             if i == 0:
@@ -36,17 +36,17 @@ class TrieNode:
                            new_dists[i - 1] + 1)
             new_dists.append(dist)
             if dist <= maxdist:
-                exists_valid = True
-        if not exists_valid:
-            return ""
-        if new_dists[-1] <= maxdist and self.exists:
-            return new_word
+                card_valid = True
+        if not card_valid:
+            return None
+        if new_dists[-1] <= maxdist and self.card is not None:
+            return self.card
         for c in self.nodes:
-            res = self.nodes[c].exists_dist(word, c, new_dists,
+            res = self.nodes[c].card_dist(word, c, new_dists,
                                                   maxdist, new_word)
             if res:
                 return res
-        return ""
+        return None
 
 class Trie:
     def __init__(self, cache_path=Path(Path.home(),
@@ -77,16 +77,16 @@ class Trie:
             self.root = pickle.load(f)
 
     def _add_card(self, card):
-        self.root.add_word(card.name)
+        self.root.add_word(card.name, card)
         if card.foreign_names:
             for foreign in card.foreign_names:
-                self.root.add_word(foreign["name"])
+                self.root.add_word(foreign["name"], card)
 
 
-    def _exists_dist(self, word, maxdist):
+    def _card_dist(self, word, maxdist):
         first_dists = list(range(len(word) + 1))
         for c in self.root.nodes:
-            res = self.root.nodes[c].exists_dist(word, c, first_dists,
+            res = self.root.nodes[c].card_dist(word, c, first_dists,
                                                  maxdist, "")
             if res:
                 return res
@@ -94,10 +94,10 @@ class Trie:
     def find_closest(self, word, max_iter=2):
         word = word
         for i in range(max_iter + 1):
-            res = self._exists_dist(word, i)
+            res = self._card_dist(word, i)
             if res:
                 return res
-        return ""
+        return None
 
 
 if __name__ == "__main__":
