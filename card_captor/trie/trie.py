@@ -22,7 +22,7 @@ class TrieNode:
                 self.nodes[c] = TrieNode()
             self.nodes[c].add_word(word[1:], card)
 
-    def card_dist(self, word, c, prev_dists, maxdist, acc):
+    def card_dist(self, word, c, prev_dists, maxdist, acc, sets):
         new_dists = []
         card_valid = False
         new_word = acc + c
@@ -39,12 +39,12 @@ class TrieNode:
                 card_valid = True
         if not card_valid:
             return None
-        if new_dists[-1] <= maxdist and self.card is not None:
+        if new_dists[-1] <= maxdist and self.card is not None and self.card.set in sets:
             return self.card
         for c in self.nodes:
             res = self.nodes[c].card_dist(word, c, new_dists,
-                                                  maxdist, new_word)
-            if res:
+                                                  maxdist, new_word, sets)
+            if res and seld.card.set in sets:
                 return res
         return None
 
@@ -83,18 +83,18 @@ class Trie:
                 self.root.add_word(foreign["name"], card)
 
 
-    def _card_dist(self, word, maxdist):
+    def _card_dist(self, word, maxdist, sets):
         first_dists = list(range(len(word) + 1))
         for c in self.root.nodes:
             res = self.root.nodes[c].card_dist(word, c, first_dists,
-                                                 maxdist, "")
+                                                 maxdist, "", sets)
             if res:
                 return res
 
-    def find_closest(self, word, max_iter=2):
+    def find_closest(self, word, max_iter=2, sets=[]):
         word = word
         for i in range(max_iter + 1):
-            res = self._card_dist(word, i)
+            res = self._card_dist(word, i, sets)
             if res:
                 return res
         return None
@@ -102,4 +102,4 @@ class Trie:
 
 if __name__ == "__main__":
     t = Trie()
-    assert(t.find_closest("Frissaon rampat") == "Frisson rampant")
+    assert(t.find_closest("Frissaon rampat", [ 'GRN' ]) == "Frisson rampant")

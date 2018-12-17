@@ -6,9 +6,9 @@ from mtgsdk import Card
 import difflib
 import pytesseract
 
-def identify_card(image_path, database):
+def identify_card(image_path, database, sets=[]):
     ocr_result = _detect_characters(image_path)
-    closest = database.find_closest(ocr_result)
+    closest = database.find_closest(ocr_result, sets=sets)
     return closest
 
 def _detect_characters(image_path):

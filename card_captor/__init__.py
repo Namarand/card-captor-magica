@@ -21,8 +21,8 @@ def launch_program(video_stream, folder, json_path):
             cv2.drawContours(frame, [card_contour], -1, (0, 255, 0), 2)
             wraped = cut_top_half(frame, card_contour)
             filename = save_image(wraped, folder)
-            name = identify_card(filename, database)
-            if name != 'X' and name is not name:
+            name = identify_card(filename, database, sets=[ "GNR" ])
+            if name and name != 'X':
                 output.add_card(name)
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) == ord('q'):
